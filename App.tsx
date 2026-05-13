@@ -91,7 +91,18 @@ async function playSound(
   }
 }
 
-const playBeep = () => playSound(880, 0.3, 'sine');
+const BELL_ASSET = require('./assets/bell.mp3');
+
+async function playBeep() {
+  try {
+    const { sound } = await Audio.Sound.createAsync(BELL_ASSET);
+    await sound.playAsync();
+    sound.setOnPlaybackStatusUpdate((status) => {
+      if (status.isLoaded && status.didJustFinish) sound.unloadAsync();
+    });
+  } catch (e) {}
+}
+
 const playBell = () => playSound(520, 1.5, 'bell');
 
 // ─── Types ────────────────────────────────────────────────────────────────────
