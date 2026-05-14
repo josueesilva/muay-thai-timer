@@ -386,64 +386,66 @@ function TimerScreen({
         <Text style={styles.backBtnText}>← BACK</Text>
       </TouchableOpacity>
 
-      {/* Phase indicator */}
-      <View style={[styles.phaseBar, isRest ? styles.phaseBarRest : styles.phaseBarExercise]}>
-        <Text style={styles.phaseText}>
-          {isRest ? '💤 REST' : '🥊 EXERCISE'}
-        </Text>
-      </View>
-
-      {/* Exercise name */}
-      <Text style={styles.exerciseCounter}>
-        {isRest
-          ? `Next: ${exercises[currentIndex + 1]?.name ?? ''}`
-          : `${currentIndex + 1} / ${totalExercises}`}
-      </Text>
-      <Text style={styles.bigExerciseName}>
-        {isRest ? 'REST' : exercise?.name}
-      </Text>
-
-      {/* Countdown */}
-      <Text style={[styles.countdown, isRest && styles.countdownRest]}>
-        {formatTime(timeLeft)}
-      </Text>
-
-      {/* Progress bar */}
-      <View style={styles.progressBarBg}>
-        <View
-          style={[
-            styles.progressBarFill,
-            isRest ? styles.progressRest : styles.progressExercise,
-            { width: `${Math.round(progress * 100)}%` },
-          ]}
-        />
-      </View>
-
-      {/* Upcoming exercises */}
-      <View style={styles.upcomingCard}>
-        <Text style={styles.upcomingTitle}>UPCOMING</Text>
-        {exercises.slice(currentIndex + (isRest ? 1 : 1)).map((ex, i) => (
-          <Text key={ex.id} style={styles.upcomingItem}>
-            {currentIndex + (isRest ? 2 : 2) + i}. {ex.name} — {formatTime(ex.duration)}
+      <ScrollView contentContainerStyle={styles.timerContent}>
+        {/* Phase indicator */}
+        <View style={[styles.phaseBar, isRest ? styles.phaseBarRest : styles.phaseBarExercise]}>
+          <Text style={styles.phaseText}>
+            {isRest ? '💤 REST' : '🥊 EXERCISE'}
           </Text>
-        ))}
-        {exercises.slice(currentIndex + 1).length === 0 && (
-          <Text style={styles.upcomingItem}>Last exercise!</Text>
-        )}
-      </View>
+        </View>
 
-      {/* Controls */}
-      <View style={styles.controls}>
-        <TouchableOpacity style={styles.resetBtn} onPress={resetTimer}>
-          <Text style={styles.resetBtnText}>↺</Text>
-        </TouchableOpacity>
+        {/* Exercise name */}
+        <Text style={styles.exerciseCounter}>
+          {isRest
+            ? `Next: ${exercises[currentIndex + 1]?.name ?? ''}`
+            : `${currentIndex + 1} / ${totalExercises}`}
+        </Text>
+        <Text style={styles.bigExerciseName}>
+          {isRest ? 'REST' : exercise?.name}
+        </Text>
 
-        <TouchableOpacity
-          style={styles.playBtn}
-          onPress={isRunning ? pauseTimer : startTimer}>
-          <Text style={styles.playBtnText}>{isRunning ? '⏸' : '▶'}</Text>
-        </TouchableOpacity>
-      </View>
+        {/* Countdown */}
+        <Text style={[styles.countdown, isRest && styles.countdownRest]}>
+          {formatTime(timeLeft)}
+        </Text>
+
+        {/* Progress bar */}
+        <View style={styles.progressBarBg}>
+          <View
+            style={[
+              styles.progressBarFill,
+              isRest ? styles.progressRest : styles.progressExercise,
+              { width: `${Math.round(progress * 100)}%` },
+            ]}
+          />
+        </View>
+
+        {/* Upcoming exercises */}
+        <View style={styles.upcomingCard}>
+          <Text style={styles.upcomingTitle}>UPCOMING</Text>
+          {exercises.slice(currentIndex + 1).map((ex, i) => (
+            <Text key={ex.id} style={styles.upcomingItem}>
+              {currentIndex + 2 + i}. {ex.name} — {formatTime(ex.duration)}
+            </Text>
+          ))}
+          {exercises.slice(currentIndex + 1).length === 0 && (
+            <Text style={styles.upcomingItem}>Last exercise!</Text>
+          )}
+        </View>
+
+        {/* Controls */}
+        <View style={styles.controls}>
+          <TouchableOpacity style={styles.resetBtn} onPress={resetTimer}>
+            <Text style={styles.resetBtnText}>↺</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.playBtn}
+            onPress={isRunning ? pauseTimer : startTimer}>
+            <Text style={styles.playBtnText}>{isRunning ? '⏸' : '▶'}</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
     </View>
   );
 }
@@ -630,6 +632,9 @@ const styles = StyleSheet.create({
   },
 
   // Timer screen
+  timerContent: {
+    paddingBottom: 40,
+  },
   backBtn: {
     paddingTop: 56,
     paddingHorizontal: 20,
