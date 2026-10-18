@@ -1,14 +1,19 @@
-import { StyleSheet, View } from 'react-native';
+import { DimensionValue, StyleSheet, View } from 'react-native';
 import { Colors, Radius, Spacing } from '../../constants/theme';
 
 interface Props {
   progress: number;
-  variant?: 'exercise' | 'rest';
+  variant?: 'exercise' | 'rest' | 'warning';
 }
 
 export function ProgressBar({ progress, variant = 'exercise' }: Props) {
-  const clampedWidth = `${Math.round(Math.max(0, Math.min(1, progress)) * 100)}%`;
-  const fillColor = variant === 'rest' ? Colors.success : Colors.primary;
+  const clampedWidth: DimensionValue = `${Math.round(Math.max(0, Math.min(1, progress)) * 100)}%`;
+  let fillColor: string = Colors.primary;
+  if (variant === 'rest') {
+    fillColor = Colors.success;
+  } else if (variant === 'warning') {
+    fillColor = Colors.warning;
+  }
 
   return (
     <View style={styles.track}>

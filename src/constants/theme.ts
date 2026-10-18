@@ -9,7 +9,10 @@ export const Colors = {
   separator: '#2A2A2A',
   border: '#333333',
   success: '#4CAF50',
-  restSurface: '#1A4A2A',
+  warning: '#FF9800',
+  warningSurface: '#4A3200',
+  exerciseSurface: '#3A1410',
+  restSurface: '#0E3B1E',
   white: '#FFFFFF',
 } as const;
 

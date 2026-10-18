@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert } from 'react-native';
+import { Alert, Vibration } from 'react-native';
 import { playEndSound, playStartSound } from '../services/audio';
 import { Exercise, Phase } from '../types';
 
@@ -15,6 +15,7 @@ export interface TimerControls {
   timeLeft: number;
   isRunning: boolean;
   progress: number;
+  isWarning: boolean;
   start: () => void;
   pause: () => void;
   reset: () => void;
@@ -44,6 +45,7 @@ export function useTimer({ exercises, restTime, onComplete }: Options): TimerCon
   const finishTraining = useCallback(() => {
     stopInterval();
     setIsRunning(false);
+    Vibration.vibrate([0, 300, 150, 300, 150, 500]);
     Alert.alert('Training Complete!', 'Great work! 🥊', [
       { text: 'Back', onPress: onComplete },
     ]);
@@ -58,6 +60,7 @@ export function useTimer({ exercises, restTime, onComplete }: Options): TimerCon
 
     if (ph === 'exercise') {
       playEndSound();
+      Vibration.vibrate([0, 400, 100, 400]);
 
       if (isLastExercise) {
         finishTraining();
@@ -72,6 +75,7 @@ export function useTimer({ exercises, restTime, onComplete }: Options): TimerCon
         setCurrentIndex(next);
         setTimeLeft(exercises[next].duration);
         playStartSound();
+        Vibration.vibrate(300);
       }
     } else {
       const next = idx + 1;
@@ -82,6 +86,7 @@ export function useTimer({ exercises, restTime, onComplete }: Options): TimerCon
       }
 
       playStartSound();
+      Vibration.vibrate(400);
       setCurrentIndex(next);
       setPhase('exercise');
       setTimeLeft(exercises[next].duration);
@@ -91,6 +96,7 @@ export function useTimer({ exercises, restTime, onComplete }: Options): TimerCon
   const start = useCallback(() => {
     if (!hasStartedRef.current) {
       playStartSound();
+      Vibration.vibrate(200);
       hasStartedRef.current = true;
     }
     setIsRunning(true);
@@ -100,7 +106,16 @@ export function useTimer({ exercises, restTime, onComplete }: Options): TimerCon
           advancePhaseRef.current();
           return 0;
         }
-        return prev - 1;
+
+        const nextTime = prev - 1;
+        // Haptic pulse on countdown (3, 2, 1) and light pulse at 10 seconds
+        if (nextTime === 10) {
+          Vibration.vibrate([0, 150, 100, 150]);
+        } else if (nextTime <= 3 && nextTime >= 1) {
+          Vibration.vibrate(80);
+        }
+
+        return nextTime;
       });
     }, 1000);
   }, []);
@@ -123,6 +138,7 @@ export function useTimer({ exercises, restTime, onComplete }: Options): TimerCon
 
   const totalDuration = phase === 'rest' ? restTime : (exercises[currentIndex]?.duration ?? 1);
   const progress = timeLeft / totalDuration;
+  const isWarning = isRunning && timeLeft <= 10 && timeLeft > 0;
 
-  return { currentIndex, phase, timeLeft, isRunning, progress, start, pause, reset };
+  return { currentIndex, phase, timeLeft, isRunning, progress, isWarning, start, pause, reset };
 }

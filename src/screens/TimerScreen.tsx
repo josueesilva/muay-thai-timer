@@ -18,7 +18,7 @@ interface Props {
 
 export function TimerScreen({ exercises, restTime, onFinish }: Props) {
   useKeepAwake();
-  const { currentIndex, phase, timeLeft, isRunning, progress, start, pause, reset } = useTimer({
+  const { currentIndex, phase, timeLeft, isRunning, progress, isWarning, start, pause, reset } = useTimer({
     exercises,
     restTime,
     onComplete: onFinish,
@@ -31,6 +31,24 @@ export function TimerScreen({ exercises, restTime, onFinish }: Props) {
     : `${currentIndex + 1} / ${exercises.length}`;
 
   const displayName = isRest ? 'REST' : (exercises[currentIndex]?.name ?? '');
+
+  const timerVariant: 'exercise' | 'rest' | 'warning' = isWarning
+    ? 'warning'
+    : isRest
+      ? 'rest'
+      : 'exercise';
+
+  // Dynamic background glow/tint based on phase & warning
+  let screenBg: string = Colors.background;
+  if (isRunning) {
+    if (isWarning) {
+      screenBg = Colors.warningSurface;
+    } else if (isRest) {
+      screenBg = Colors.restSurface;
+    } else {
+      screenBg = Colors.exerciseSurface;
+    }
+  }
 
   function handleBack() {
     Alert.alert('End workout?', 'Your progress will be lost.', [
@@ -47,7 +65,7 @@ export function TimerScreen({ exercises, restTime, onFinish }: Props) {
   }
 
   return (
-    <View style={styles.screen}>
+    <View style={[styles.screen, { backgroundColor: screenBg }]}>
       <TouchableOpacity
         style={styles.backButton}
         onPress={handleBack}
@@ -56,14 +74,14 @@ export function TimerScreen({ exercises, restTime, onFinish }: Props) {
       </TouchableOpacity>
 
       <ScrollView contentContainerStyle={styles.content}>
-        <PhaseIndicator phase={phase} />
+        <PhaseIndicator phase={phase} isWarning={isWarning} />
 
         <Text style={styles.counter}>{counterLabel}</Text>
         <Text style={styles.exerciseName}>{displayName}</Text>
 
-        <TimeDisplay time={formatTime(timeLeft)} variant={isRest ? 'rest' : 'exercise'} />
+        <TimeDisplay time={formatTime(timeLeft)} variant={timerVariant} />
 
-        <ProgressBar progress={progress} variant={isRest ? 'rest' : 'exercise'} />
+        <ProgressBar progress={progress} variant={timerVariant} />
 
         <UpcomingList exercises={exercises} fromIndex={currentIndex} />
 

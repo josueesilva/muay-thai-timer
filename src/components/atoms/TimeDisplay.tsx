@@ -3,11 +3,17 @@ import { Colors, FontSize } from '../../constants/theme';
 
 interface Props {
   time: string;
-  variant?: 'exercise' | 'rest';
+  variant?: 'exercise' | 'rest' | 'warning';
 }
 
 export function TimeDisplay({ time, variant = 'exercise' }: Props) {
-  const color = variant === 'rest' ? Colors.success : Colors.accent;
+  let color: string = Colors.accent;
+  if (variant === 'rest') {
+    color = Colors.success;
+  } else if (variant === 'warning') {
+    color = Colors.warning;
+  }
+
   return <Text style={[styles.text, { color }]}>{time}</Text>;
 }
 
