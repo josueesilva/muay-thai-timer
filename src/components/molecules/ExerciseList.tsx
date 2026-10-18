@@ -8,9 +8,11 @@ import { ExerciseListItem } from './ExerciseListItem';
 interface Props {
   exercises: Exercise[];
   onRemove: (id: string) => void;
+  onMoveUp?: (index: number) => void;
+  onMoveDown?: (index: number) => void;
 }
 
-export function ExerciseList({ exercises, onRemove }: Props) {
+export function ExerciseList({ exercises, onRemove, onMoveUp, onMoveDown }: Props) {
   return (
     <Card>
       <SectionLabel>EXERCISES</SectionLabel>
@@ -22,7 +24,15 @@ export function ExerciseList({ exercises, onRemove }: Props) {
         </View>
       ) : (
         exercises.map((ex, index) => (
-          <ExerciseListItem key={ex.id} exercise={ex} index={index} onRemove={onRemove} />
+          <ExerciseListItem
+            key={ex.id}
+            exercise={ex}
+            index={index}
+            total={exercises.length}
+            onRemove={onRemove}
+            onMoveUp={() => onMoveUp?.(index)}
+            onMoveDown={() => onMoveDown?.(index)}
+          />
         ))
       )}
     </Card>

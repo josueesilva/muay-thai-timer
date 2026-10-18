@@ -13,22 +13,37 @@ import { UpcomingList } from '../components/molecules/UpcomingList';
 interface Props {
   exercises: Exercise[];
   restTime: number;
+  totalRounds?: number;
   onFinish: () => void;
 }
 
-export function TimerScreen({ exercises, restTime, onFinish }: Props) {
+export function TimerScreen({ exercises, restTime, totalRounds = 1, onFinish }: Props) {
   useKeepAwake();
-  const { currentIndex, phase, timeLeft, isRunning, progress, isWarning, start, pause, reset } = useTimer({
+  const {
+    currentIndex,
+    currentRound,
+    phase,
+    timeLeft,
+    isRunning,
+    progress,
+    isWarning,
+    start,
+    pause,
+    reset,
+  } = useTimer({
     exercises,
     restTime,
+    totalRounds,
     onComplete: onFinish,
   });
 
   const isRest = phase === 'rest';
 
+  const roundPrefix = totalRounds > 1 ? `ROUND ${currentRound}/${totalRounds} · ` : '';
+
   const counterLabel = isRest
-    ? `Next: ${exercises[currentIndex + 1]?.name ?? ''}`
-    : `${currentIndex + 1} / ${exercises.length}`;
+    ? `${roundPrefix}Next: ${exercises[currentIndex + 1]?.name ?? (currentRound < totalRounds ? exercises[0]?.name : 'Finished')}`
+    : `${roundPrefix}Exercise ${currentIndex + 1} of ${exercises.length}`;
 
   const displayName = isRest ? 'REST' : (exercises[currentIndex]?.name ?? '');
 

@@ -6,11 +6,14 @@ import { Exercise, Phase } from '../types';
 interface Options {
   exercises: Exercise[];
   restTime: number;
+  totalRounds?: number;
   onComplete: () => void;
 }
 
 export interface TimerControls {
   currentIndex: number;
+  currentRound: number;
+  totalRounds: number;
   phase: Phase;
   timeLeft: number;
   isRunning: boolean;
@@ -21,8 +24,9 @@ export interface TimerControls {
   reset: () => void;
 }
 
-export function useTimer({ exercises, restTime, onComplete }: Options): TimerControls {
+export function useTimer({ exercises, restTime, totalRounds = 1, onComplete }: Options): TimerControls {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentRound, setCurrentRound] = useState(1);
   const [phase, setPhase] = useState<Phase>('exercise');
   const [timeLeft, setTimeLeft] = useState(exercises[0]?.duration ?? 0);
   const [isRunning, setIsRunning] = useState(false);
@@ -33,8 +37,10 @@ export function useTimer({ exercises, restTime, onComplete }: Options): TimerCon
   // Always-current refs so the interval callback never reads stale state
   const phaseRef = useRef(phase);
   const indexRef = useRef(currentIndex);
+  const roundRef = useRef(currentRound);
   phaseRef.current = phase;
   indexRef.current = currentIndex;
+  roundRef.current = currentRound;
 
   const stopInterval = useCallback(() => {
     if (intervalRef.current === null) return;
@@ -56,13 +62,15 @@ export function useTimer({ exercises, restTime, onComplete }: Options): TimerCon
   advancePhaseRef.current = () => {
     const idx = indexRef.current;
     const ph = phaseRef.current;
-    const isLastExercise = idx >= exercises.length - 1;
+    const rnd = roundRef.current;
+    const isLastExerciseInRound = idx >= exercises.length - 1;
+    const isLastRound = rnd >= totalRounds;
 
     if (ph === 'exercise') {
       playEndSound();
       Vibration.vibrate([0, 400, 100, 400]);
 
-      if (isLastExercise) {
+      if (isLastExerciseInRound && isLastRound) {
         finishTraining();
         return;
       }
@@ -71,25 +79,37 @@ export function useTimer({ exercises, restTime, onComplete }: Options): TimerCon
         setPhase('rest');
         setTimeLeft(restTime);
       } else {
-        const next = idx + 1;
-        setCurrentIndex(next);
-        setTimeLeft(exercises[next].duration);
+        if (isLastExerciseInRound) {
+          // Next round immediately
+          const nextRnd = rnd + 1;
+          setCurrentRound(nextRnd);
+          setCurrentIndex(0);
+          setTimeLeft(exercises[0].duration);
+        } else {
+          const next = idx + 1;
+          setCurrentIndex(next);
+          setTimeLeft(exercises[next].duration);
+        }
         playStartSound();
         Vibration.vibrate(300);
       }
     } else {
-      const next = idx + 1;
-
-      if (next >= exercises.length) {
-        finishTraining();
-        return;
-      }
-
       playStartSound();
       Vibration.vibrate(400);
-      setCurrentIndex(next);
-      setPhase('exercise');
-      setTimeLeft(exercises[next].duration);
+
+      if (isLastExerciseInRound) {
+        // Start next round!
+        const nextRnd = rnd + 1;
+        setCurrentRound(nextRnd);
+        setCurrentIndex(0);
+        setPhase('exercise');
+        setTimeLeft(exercises[0].duration);
+      } else {
+        const next = idx + 1;
+        setCurrentIndex(next);
+        setPhase('exercise');
+        setTimeLeft(exercises[next].duration);
+      }
     }
   };
 
@@ -130,6 +150,7 @@ export function useTimer({ exercises, restTime, onComplete }: Options): TimerCon
     setIsRunning(false);
     hasStartedRef.current = false;
     setCurrentIndex(0);
+    setCurrentRound(1);
     setPhase('exercise');
     setTimeLeft(exercises[0]?.duration ?? 0);
   }, [exercises, stopInterval]);
@@ -140,5 +161,17 @@ export function useTimer({ exercises, restTime, onComplete }: Options): TimerCon
   const progress = timeLeft / totalDuration;
   const isWarning = isRunning && timeLeft <= 10 && timeLeft > 0;
 
-  return { currentIndex, phase, timeLeft, isRunning, progress, isWarning, start, pause, reset };
+  return {
+    currentIndex,
+    currentRound,
+    totalRounds,
+    phase,
+    timeLeft,
+    isRunning,
+    progress,
+    isWarning,
+    start,
+    pause,
+    reset,
+  };
 }

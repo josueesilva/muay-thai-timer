@@ -17,6 +17,7 @@ export default function App() {
   const [screen, setScreen] = useState<Screen>('setup');
   const [exercises, setExercises] = useState<Exercise[]>(DEFAULT_EXERCISES);
   const [restTime, setRestTime] = useState(30);
+  const [rounds, setRounds] = useState(3);
 
   useEffect(() => {
     initAudio();
@@ -29,14 +30,17 @@ export default function App() {
         <SetupScreen
           exercises={exercises}
           restTime={restTime}
+          rounds={rounds}
           onExercisesChange={setExercises}
           onRestTimeChange={setRestTime}
+          onRoundsChange={setRounds}
           onStart={() => setScreen('timer')}
         />
       ) : (
         <TimerScreen
           exercises={exercises}
           restTime={restTime}
+          totalRounds={rounds}
           onFinish={() => setScreen('setup')}
         />
       )}
