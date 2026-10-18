@@ -1,6 +1,7 @@
-import { Alert, ScrollView, StyleSheet, Text } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Colors, FontSize, Spacing } from '../constants/theme';
 import { Exercise } from '../types';
+import { formatTime } from '../utils/time';
 import { PrimaryButton } from '../components/atoms/PrimaryButton';
 import { AddExerciseForm } from '../components/molecules/AddExerciseForm';
 import { ExerciseList } from '../components/molecules/ExerciseList';
@@ -29,28 +30,37 @@ export function SetupScreen({
     onExercisesChange(exercises.filter((e) => e.id !== id));
   }
 
-  function handleStart() {
-    if (exercises.length === 0) {
-      Alert.alert('No exercises', 'Add at least one exercise to start.');
-      return;
-    }
-    onStart();
-  }
+  const count = exercises.length;
+  const totalSeconds =
+    exercises.reduce((sum, e) => sum + e.duration, 0) + Math.max(0, count - 1) * restTime;
+
+  const startLabel =
+    count === 0
+      ? 'ADD AN EXERCISE TO START'
+      : `▶ START · ${count} ${count === 1 ? 'exercise' : 'exercises'} · ${formatTime(totalSeconds)}`;
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>🥊 MUAY THAI TIMER</Text>
+    <View style={styles.screen}>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled">
+        <Text style={styles.title}>🥊 MUAY THAI TIMER</Text>
 
-      <RestTimeInput value={restTime} onChange={onRestTimeChange} />
-      <ExerciseList exercises={exercises} onRemove={removeExercise} />
-      <AddExerciseForm onAdd={addExercise} />
+        <ExerciseList exercises={exercises} onRemove={removeExercise} />
+        <AddExerciseForm onAdd={addExercise} />
+        <RestTimeInput value={restTime} onChange={onRestTimeChange} />
+      </ScrollView>
 
-      <PrimaryButton
-        label="START TRAINING"
-        disabled={exercises.length === 0}
-        onPress={handleStart}
-      />
-    </ScrollView>
+      <View style={styles.footer}>
+        <PrimaryButton
+          label={startLabel}
+          disabled={count === 0}
+          onPress={onStart}
+          style={styles.startButton}
+        />
+      </View>
+    </View>
   );
 }
 
@@ -59,10 +69,13 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
+  scroll: {
+    flex: 1,
+  },
   content: {
     padding: Spacing.xl,
     paddingTop: Spacing.xxxl + Spacing.xl,
-    paddingBottom: Spacing.xxxl,
+    paddingBottom: Spacing.xl,
   },
   title: {
     fontSize: FontSize.heading,
@@ -71,5 +84,16 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     letterSpacing: 3,
     marginBottom: Spacing.xxl,
+  },
+  footer: {
+    paddingHorizontal: Spacing.xl,
+    paddingTop: Spacing.md,
+    paddingBottom: Spacing.xxl,
+    backgroundColor: Colors.background,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+  },
+  startButton: {
+    marginTop: 0,
   },
 });

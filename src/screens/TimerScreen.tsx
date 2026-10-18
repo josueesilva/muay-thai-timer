@@ -1,4 +1,5 @@
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useKeepAwake } from 'expo-keep-awake';
 import { Colors, FontSize, Spacing } from '../constants/theme';
 import { useTimer } from '../hooks/useTimer';
 import { Exercise } from '../types';
@@ -16,6 +17,7 @@ interface Props {
 }
 
 export function TimerScreen({ exercises, restTime, onFinish }: Props) {
+  useKeepAwake();
   const { currentIndex, phase, timeLeft, isRunning, progress, start, pause, reset } = useTimer({
     exercises,
     restTime,
@@ -31,13 +33,25 @@ export function TimerScreen({ exercises, restTime, onFinish }: Props) {
   const displayName = isRest ? 'REST' : (exercises[currentIndex]?.name ?? '');
 
   function handleBack() {
-    reset();
-    onFinish();
+    Alert.alert('End workout?', 'Your progress will be lost.', [
+      { text: 'Keep training', style: 'cancel' },
+      {
+        text: 'End workout',
+        style: 'destructive',
+        onPress: () => {
+          reset();
+          onFinish();
+        },
+      },
+    ]);
   }
 
   return (
     <View style={styles.screen}>
-      <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={handleBack}
+        accessibilityLabel="End workout">
         <Text style={styles.backLabel}>← BACK</Text>
       </TouchableOpacity>
 

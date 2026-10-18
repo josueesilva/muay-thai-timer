@@ -1,57 +1,62 @@
 import { useState } from 'react';
-import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TextInput, TouchableOpacity } from 'react-native';
 import { Colors, FontSize, Radius, Spacing } from '../../constants/theme';
 import { Exercise } from '../../types';
 import { Card } from '../atoms/Card';
 import { SectionLabel } from '../atoms/SectionLabel';
+import { DurationStepper } from './DurationStepper';
 
 interface Props {
   onAdd: (exercise: Omit<Exercise, 'id'>) => void;
 }
+const DEFAULT_DURATION = 30;
+const DURATION_PRESETS = [30, 60, 120, 180];
 
 export function AddExerciseForm({ onAdd }: Props) {
   const [name, setName] = useState('');
-  const [duration, setDuration] = useState('');
+  const [duration, setDuration] = useState(DEFAULT_DURATION);
+  const [nameError, setNameError] = useState('');
 
   function handleAdd() {
     const trimmedName = name.trim();
-    const parsedDuration = parseInt(duration, 10);
 
     if (!trimmedName) {
-      Alert.alert('Error', 'Enter an exercise name.');
+      setNameError('Enter an exercise name.');
       return;
     }
-    if (!parsedDuration || parsedDuration <= 0) {
-      Alert.alert('Error', 'Enter a valid duration in seconds.');
+    if (duration <= 0) {
       return;
     }
 
-    onAdd({ name: trimmedName, duration: parsedDuration });
+    onAdd({ name: trimmedName, duration });
     setName('');
-    setDuration('');
+    setNameError('');
   }
 
   return (
     <Card>
       <SectionLabel>ADD EXERCISE</SectionLabel>
       <TextInput
-        style={styles.input}
+        style={[styles.input, !!nameError && styles.inputError]}
         value={name}
-        onChangeText={setName}
+        onChangeText={(text) => {
+          setName(text);
+          if (nameError) setNameError('');
+        }}
+        onSubmitEditing={handleAdd}
+        returnKeyType="done"
         placeholder="Exercise name (e.g. Jab-Cross)"
         placeholderTextColor={Colors.muted}
       />
-      <View style={styles.row}>
-        <TextInput
-          style={[styles.input, styles.durationInput]}
-          keyboardType="numeric"
-          value={duration}
-          onChangeText={setDuration}
-          placeholder="Duration (sec)"
-          placeholderTextColor={Colors.muted}
-        />
-        <Text style={styles.unit}>seconds</Text>
-      </View>
+      {!!nameError && <Text style={styles.error}>{nameError}</Text>}
+
+      <DurationStepper
+        value={duration}
+        onChange={setDuration}
+        min={5}
+        presets={DURATION_PRESETS}
+      />
+
       <TouchableOpacity style={styles.addButton} onPress={handleAdd}>
         <Text style={styles.addButtonLabel}>+ ADD</Text>
       </TouchableOpacity>
@@ -66,28 +71,25 @@ const styles = StyleSheet.create({
     borderRadius: Radius.sm,
     padding: Spacing.md,
     fontSize: FontSize.input,
+    marginBottom: Spacing.md,
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  inputError: {
+    borderColor: Colors.primary,
     marginBottom: Spacing.xs,
   },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: Spacing.md,
-  },
-  durationInput: {
-    flex: 1,
-    marginBottom: 0,
-  },
-  unit: {
-    color: Colors.muted,
-    marginLeft: Spacing.md,
-    fontSize: FontSize.body,
+  error: {
+    color: Colors.primary,
+    fontSize: FontSize.caption,
+    marginBottom: Spacing.md,
   },
   addButton: {
     backgroundColor: Colors.primary,
     borderRadius: Radius.sm,
     paddingVertical: Spacing.md,
     alignItems: 'center',
-    marginTop: Spacing.md,
+    marginTop: Spacing.lg,
   },
   addButtonLabel: {
     color: Colors.white,

@@ -1,5 +1,5 @@
-import { StyleSheet, Text } from 'react-native';
-import { Colors, FontSize } from '../../constants/theme';
+import { StyleSheet, Text, View } from 'react-native';
+import { Colors, FontSize, Spacing } from '../../constants/theme';
 import { Exercise } from '../../types';
 import { Card } from '../atoms/Card';
 import { SectionLabel } from '../atoms/SectionLabel';
@@ -15,7 +15,11 @@ export function ExerciseList({ exercises, onRemove }: Props) {
     <Card>
       <SectionLabel>EXERCISES</SectionLabel>
       {exercises.length === 0 ? (
-        <Text style={styles.empty}>No exercises yet. Add one below.</Text>
+        <View style={styles.emptyBox}>
+          <Text style={styles.emptyIcon}>🥊</Text>
+          <Text style={styles.emptyTitle}>Add your first exercise</Text>
+          <Text style={styles.emptyHint}>Fill in the form below to build your workout.</Text>
+        </View>
       ) : (
         exercises.map((ex, index) => (
           <ExerciseListItem key={ex.id} exercise={ex} index={index} onRemove={onRemove} />
@@ -26,9 +30,23 @@ export function ExerciseList({ exercises, onRemove }: Props) {
 }
 
 const styles = StyleSheet.create({
-  empty: {
+  emptyBox: {
+    alignItems: 'center',
+    paddingVertical: Spacing.xl,
+  },
+  emptyIcon: {
+    fontSize: 36,
+    marginBottom: Spacing.sm,
+  },
+  emptyTitle: {
+    color: Colors.text,
+    fontSize: FontSize.bodyLg,
+    fontWeight: '700',
+  },
+  emptyHint: {
     color: Colors.muted,
     fontSize: FontSize.body,
-    fontStyle: 'italic',
+    marginTop: Spacing.xs,
+    textAlign: 'center',
   },
 });
